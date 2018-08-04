@@ -1,4 +1,4 @@
-# Enterprise role-play: Dress up your Ansible roles with great tests
+### Enterprise role-play: Dress up your Ansible roles with great tests
 
 Jake Remitz | Technical Team Lead | @jremitz
 
@@ -13,15 +13,15 @@ Jake Remitz | Technical Team Lead | @jremitz
 @ul
 
 * Serverspec (ruby-based)
-  * https://serverspec.org/
+  https://serverspec.org/
 * Testinfra (python-based)
-  * https://testinfra.readthedocs.io/en/latest/
+  https://testinfra.readthedocs.io/en/latest/
 * InSpec
-  * https://www.inspec.io/
+  https://www.inspec.io/
 * Bats (Bash Automated Testing System)
-  * https://github.com/sstephenson/bats
+  https://github.com/sstephenson/bats
 * GOSS (yaml-based)
-  * https://goss.rocks
+  https://goss.rocks
 
 @ulend
 
@@ -48,9 +48,9 @@ ansible-playbook test_playbook.yml -i hosts --check
 @ul
 
 * KitchenCI (“test kitchen” – alternative to molecule)
-  * https://kitchen.ci/
+  https://kitchen.ci/
 * Molecule
-  * http://molecule.readthedocs.io/
+  http://molecule.readthedocs.io/
 
 @ulend
 
