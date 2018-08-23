@@ -1,0 +1,100 @@
+#--- Removed for presentation
+- hosts: elk
+  become: yes
+  gather_facts: yes
+  serial: 1
+
+  pre_tasks:
+    - name: check current elasticsearch version
+      uri: 
+        url: http://localhost:{{ elasticsearch_http_port }} 
+        method: GET
+      register: version_found
+      retries: 10
+      delay: 10
+      tags: rolling_upgrade,elasticsearch
+      ignore_errors: true
+
+    - set_fact:
+        version_number: "{{ version_found.json.version.number }}"
+        cacheable: true
+      when: version_found is defined and version_found.json is defined
+      tags: rolling_upgrade,elasticsearch
+
+    - set_fact:
+        version_number: "0.0.0"
+        cacheable: true
+      when: version_found.json is not defined
+      tags: rolling_upgrade,elasticsearch
+
+    - debug:
+        msg: "{{ version_number }} ?? {{ elasticsearch_version }}"
+      tags: rolling_upgrade,elasticsearch
+ 
+    - name: wait for cluster health to return to {{ elasticsearch_okay_status }}
+      uri: 
+        url: http://localhost:{{ elasticsearch_http_port }}/_cluster/health 
+        method: GET
+      register: response
+      until: "response.json.status == elasticsearch_okay_status"
+      retries: 150
+      tags: rolling_upgrade,elasticsearch
+      delay: 30
+
+    # Rolling upgrade - remove from cluster
+    - block:
+
+      - name: disable shard
+        uri:
+          url: http://localhost:{{ elasticsearch_http_port }}/_cluster/settings
+          method: PUT
+          body: "{{ lookup('file','elk/disable_shard.json') }}"
+          body_format: json
+
+      - name: synced flush
+        uri:
+          url: http://localhost:{{ elasticsearch_http_port }}/_flush/synced
+          method: POST
+          status_code: 200,409
+
+      when: groups.elk | length > 1 and version_number != "0.0.0" and version_number != elasticsearch_version
+      tags: rolling_upgrade,elasticsearch
+
+  roles:
+    - { role: carlson-yum }
+    - { role: certmonger, tags: certmonger }
+    - { role: carlson-facts }
+    - { role: oracle-java }
+    - { role: elasticsearch, tags: elasticsearch }
+    - { role: curator, tags: curator}
+    - { role: kibana, tags: kibana }
+    - { role: logstash, tags: logstash }
+    - { role: logrotate, tags: logr }
+
+  post_tasks:
+    # Rolling upgrade - add back into cluster
+    - block:
+      - name: Wait 300 seconds for port {{ elasticsearch_http_port }} to become open on the host, don't start checking for 10 seconds
+        wait_for:
+          port: "{{ elasticsearch_http_port }}"
+          delay: 10
+
+      - name: Wait for cluster health to return to green
+        uri: 
+          url: http://localhost:{{ elasticsearch_http_port }}/_cluster/health
+          method: GET
+        register: response
+        until: "response.json.status == 'green' or response.json.status == 'yellow'"
+        retries: 50
+        delay: 30
+ 
+      - name: reenable shard
+        uri:
+          url: http://localhost:{{ elasticsearch_http_port }}/_cluster/settings
+          method: PUT
+          body: "{{ lookup('file','elk/enable_shard.json') }}"
+          body_format: json
+
+      when: groups.elk | length > 1 and version_number != "0.0.0" and version_number != elasticsearch_version
+      tags: rolling_upgrade,elasticsearch
+

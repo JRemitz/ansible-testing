@@ -1,1 +1,10 @@
-theme: night
+#layout: top
+
+theme: white
+theme-override : assets/css/PITCHME.css
+highlight : dark
+
+logo : assets/img/cwt.png
+logo-position : bottom-right
+
+remote-control: true
