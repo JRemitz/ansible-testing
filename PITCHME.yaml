@@ -3,8 +3,10 @@
 theme: white
 theme-override : assets/css/PITCHME.css
 highlight : dark
+published : true
+pro-menus-hidden : true
 
 logo : assets/img/cwt.png
 logo-position : bottom-right
 
-remote-control: true
+remote-control : true

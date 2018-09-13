@@ -1,0 +1,52 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: instance1-master
+    image: jremitz/centos-systemd:latest
+    privileged: true
+    command: /usr/sbin/init
+    groups:
+      - redis
+    children:
+      - redis_master
+    exposed_ports:
+      - 6379/tcp
+    published_ports:
+      - 0.0.0.0:6379:6379/tcp
+  - name: instance2-slave
+    image: jremitz/centos-systemd:latest
+    privileged: true
+    command: /usr/sbin/init
+    groups:
+      - redis
+    children:
+      - redis_slave
+    exposed_ports:
+      - 6380/tcp
+    published_ports:
+      - 0.0.0.0:6380:6380/tcp
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ../playbook.yml
+  inventory:
+    group_vars:
+      redis:
+        redis_bind_interface: 0.0.0.0
+        redis_requirepass: secret
+      redis_slave:
+        redis_port: 6380
+        redis_slaveof: "{{ groups['redis_master'] | map('extract', hostvars, ['ansible_eth0','ipv4','address']) | first }} 6379"
+  lint:
+    name: ansible-lint
+scenario:
+  name: replication
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
