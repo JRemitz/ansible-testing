@@ -1,16 +1,15 @@
 @size[40pt](@color[#FF694B](**Enterprise role-play**)@color[#333F48](: Dress up your Ansible roles with great tests))
 
 @snap[south]
-@size[18pt](Jake Remitz | Technical Team Lead) <br />
+@size[18pt](Jake Remitz | Lead Software DevOps Engineer) <br />
 @size[14pt](@fa[github] @fa[twitter-square] @jremitz)
 @snapend
 
 Note:
 
-- Jake Remitz - Tech Team Lead in Enterprise Operations team
+- Jake Remitz - Lead Software DevOps Engineer
 - Talk about testing you infrastructure as code (Ansible) in an Enterprise environment
     - reusable, scalable code
-
 
 ---
 
@@ -22,20 +21,20 @@ Note:
 
 [Ansible Testing Strategies](https://docs.ansible.com/ansible/latest/test_strategies.html)
 
-> @size[22pt](Ansible believes you should not need another framework to validate basic things of your infrastructure is true. This is the case because Ansible is an order-based system that will fail immediately on unhandled errors for a host, and prevent further configuration of that host. This forces errors to the top and shows them in a summary at the end of the Ansible run.)
+> @size[22pt](Ansible believes you should not need another framework to validate basic things of your infrastructure is true. This is the case because Ansible is an order-based system that will fail immediately on unhandled errors for a host, and prevent further configuration of that host. This forces errors to the top and shows them in a summary at the end of the Ansible run...)
 
 +++
 
 #### XKCD: Good Code
 
-![XKCD:Good Code](assets/img/good_code.png)
+![XKCD:Good Code](template/img/good_code.png)
 
 @snap[south-west]
 @size[18pt](https://xkcd.com/844/)
 @snapend
 
 @snap[east]
-@size[12pt](<p><I>"You can either hang out in the<br> Android loop or the HURD loop"</I></p>)
+@size[12pt](<p><I>"You can either hang out in the<br> Android loop or the HURD loop"<br>-Randall Munroe</I></p>)
 @snapend
 
 Note:
@@ -52,7 +51,7 @@ Note:
 ##### Syntax Check
  
 ```sh
-ansible-playbook test_playbook.yml -i hosts --syntax-check
+ansible-playbook playbook.yml -i hosts --syntax-check
 ```
 
 @css[page-note](Not much of a "test" - but it's a good sanity check to start)
@@ -66,10 +65,10 @@ Note:
 ##### Check Play
 
 ```sh
-ansible-playbook test_playbook.yml -i hosts --check
+ansible-playbook playbook.yml -i hosts --check
 ```
 
-@css[page-note](Good dry run but may fail for some downstream tasks with dependencies - package install, for example)
+@css[page-note](Good dry run but may fail for some downstream tasks with dependencies - package install, for example<br>Helpful with --tag and --diff to target and troubleshoot changes)
 
 Note:
 
@@ -81,15 +80,52 @@ Note:
 
 ##### Helpful Features
 
-**Modules**
+###### Modules
 
 - `wait_for`
+
+```yml
+tasks:
+
+  - wait_for:
+      host: "{{ inventory_hostname }}"
+      port: 22
+    delegate_to: localhost
+```
++++
+
+###### Modules (cont'd)
+
 - `uri`
+
+```yml
+tasks:
+
+  - uri: url=http://www.example.com return_content=yes
+    register: webpage
+
+  - fail:
+      msg: 'service is not happy'
+    when: "'AWESOME' not in webpage.content"
+```
+
++++
+**Modules**
+
 - `stat`
-- `failed_when`
 - `assert (that)`
 
-@css[page-note](Will require "test" environment where impactful changes can be applied)
+```yml
+tasks:
+
+   - stat:
+       path: /path/to/something
+     register: p
+
+   - assert:
+       that:
+         - p.stat.exists and p.stat.isdir
+```
 
 Note:
 
@@ -97,9 +133,7 @@ code <I>smarter</I>, use the modules
 - `wait_for:` - ports, services - https://docs.ansible.com/ansible/latest/modules/wait_for_module.html#examples
 - `uri:` - essentially curl, test services
 - `stat:` - file system status
-- `failed_when:` - test scenario
 - `assert (that)` - test condition https://docs.ansible.com/ansible/latest/modules/assert_module.html#examples
-
 
 +++
 
@@ -120,7 +154,6 @@ code <I>smarter</I>, use the modules
 
 ## Testing Tools
 
-- Bats (Bash Automated Testing System) - https://github.com/sstephenson/bats
 - Serverspec - https://serverspec.org/
 - GOSS - https://goss.rocks
 - InSpec - https://www.inspec.io/
@@ -150,7 +183,7 @@ code <I>smarter</I>, use the modules
 
 - lint
 - syntax
-- dependencies (galaxy, gilt, shell)
+- dependencies
 - check
 - provision
 - idempotency
