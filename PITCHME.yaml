@@ -1,0 +1,13 @@
+#layout: top
+
+theme: white
+theme-override : template/css/custom.css
+highlight : dark
+published : true
+pro-menus-hidden : true
+
+logo : template/img/cwt.png
+logo-position : bottom-right
+footnote : "© 2018 Jake Remitz"
+
+remote-control : true

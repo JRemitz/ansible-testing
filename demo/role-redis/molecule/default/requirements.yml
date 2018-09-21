@@ -1,0 +1,6 @@
+---
+- src: geerlingguy.repo-epel
+  name: epel
+- src: git+https://github.com/JRemitz/ansible-role-redis
+  version: slave-master
+  name: ansible-role-redis
